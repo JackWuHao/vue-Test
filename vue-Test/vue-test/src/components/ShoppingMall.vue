@@ -49,6 +49,22 @@
      <floor-component :floorData="floor1"  :floorTitle="floorName.floor1" class="floor-height"></floor-component>
      <floor-component :floorData="floor2" :floorTitle="floorName.floor2" class="floor-height"></floor-component>
      <floor-component :floorData="floor3" :floorTitle="floorName.floor3" class="floor-height"></floor-component>
+
+     <!-- hot-area -->
+     <div class="hot-area">
+        <div class="hot-title">热卖商品</div>
+        <div class="hot-goods">
+           <van-list>
+              <van-row gutter="20">
+                <van-col span='12' v-for='(item,index) in hotGoods' :key="index">
+                  <div @click="onGoodsDetail(item)">
+                  <goods-info :goodsImage="item.image" :goodsName="item.name" :goodsPrice="item.price" ></goods-info>
+                  </div>
+                </van-col>
+              </van-row>
+           </van-list>
+        </div>
+     </div>
   </div>
 </template>
 
@@ -56,8 +72,11 @@
 import axios from 'axios'
 import 'swiper/dist/css/swiper.css'
 import { swiper, swiperSlide } from 'vue-awesome-swiper'
-
 import floorComponent from './component/floorComponent'
+import goodsInfo from './component/goodsInfoComponent'
+import url  from '@/serviceAPI.config.js'
+import { Toast } from 'vant'
+// import { toMoney } from '@/filter/moneyFilter.js'
 export default {
   data () {
     return {
@@ -75,33 +94,50 @@ export default {
       floor1:[],
       floor2:[],
       floor3:[],
-      floorName:{}
+      floorName:{},
+      hotGoods:[]
     }
   },
-  components:{ swiper, swiperSlide, floorComponent},
+  components:{ swiper, swiperSlide, floorComponent,goodsInfo},
   created() {
-    axios({
-      url: 'https://4ba310c1-4558-4e45-a3b0-65911699c475.mock.pstmn.io/test2',
-      methond: 'get'
-    })
-    .then( response =>{
-      if(response.status ==200){
-         this.category=response.data.data.category;
-         this.recommendGoods = response.data.data.recommend;
-         this.adBanner = response.data.data.advertesPicture.PICTURE_ADDRESS;;
-         this.floor1 = response.data.data.floor1;
-         this.floor2 = response.data.data.floor2;
-         this.floor3 = response.data.data.floor3;
-         this.floorName = response.data.data.floorName;
-         // console.log(response.data.category)
-      }
+    this.onLoadData()
+  },
+  methods:{
+    onGoodsDetail(data){
+          console.log(data)
+          // this.$router.push('/goods')
+          this.$router.push({name:'Goods',params:{goodsId:data.goodsId}})
+        },
 
-    })
-    .catch((error) => {
-      // console.log(error)
-    })
-  }
+    onLoadData(){
+       Toast.loading('请求中。。。')
+        axios({
+          url: url.getShoppingMallInfo,
+          methond: 'get'
+        })
+        .then( response =>{
+          Toast.clear()
+          if(response.status ==200){
+            this.category=response.data.data.category;
+            this.recommendGoods = response.data.data.recommend;
+            this.adBanner = response.data.data.advertesPicture.PICTURE_ADDRESS;;
+            this.floor1 = response.data.data.floor1;
+            this.floor2 = response.data.data.floor2;
+            this.floor3 = response.data.data.floor3;
+            this.floorName = response.data.data.floorName;
+            this.hotGoods = response.data.data.hotGoods;
+            // console.log(response.data.category)
+          }
+
+        })
+        .catch((error) => {
+          Toast.fail('请求失败，请稍后再试')
+          // console.log(error)
+        })
+     }
+    }
 }
+
 </script>
 
 <style>
@@ -160,12 +196,26 @@ export default {
   .recommend-item{
     width:99%;
     border-right: 1px solid #eee;
-    font-size: 12px;
+    font-size: .6rem;
     text-align: center;
   }
   .floor-height{
     min-height: 19rem;
     background-color: #fff;
   }
+  .hot-area{
+    text-align: center;
+    font-size: 0.6rem;
+    height: 1.8rem;
+    line-height: 1.8rem;
+  }
+  .hot-title{
+    font-size: .8rem;
+  }
+  .hot-goods{
+        height: 130rem;
+        overflow: hidden;
+        background-color: #fff;
+    }
 
 </style>
